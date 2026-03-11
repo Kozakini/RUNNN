@@ -1,39 +1,35 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.AI;
 public class AIController : MonoBehaviour
 {
+    public Transform target;
 
-    public Transform Player;
-    int MoveSpeed = 4;
-    int MaxDist = 100;
-    int MinDist = 90;
+    public float rotationSpeed = 3f;
 
+    private Quaternion lookRotation;
 
+    private Vector3 directionTarget;
+    private Vector3 movement;
 
+    private Renderer colored;
+    public int speed = 1;
+    public Rigidbody rb;
 
+    private NavMeshAgent agent;
     void Start()
     {
+        colored = GetComponent<Renderer>();
+        agent = GetComponent<NavMeshAgent>();
+        colored.material.color = Color.red;
 
+        
     }
 
     void Update()
     {
-        transform.LookAt(Player);
+      agent.SetDestination(target.position);
 
-        if (Vector3.Distance(transform.position, Player.position) >= MinDist)
-        {
-
-            transform.position += transform.forward * MoveSpeed * Time.deltaTime;
-
-
-
-            if (Vector3.Distance(transform.position, Player.position) <= MaxDist)
-            {
-                //Here Call any function U want Like Shoot at here or something
-            }
-
-        }
     }
 }

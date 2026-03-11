@@ -1,0 +1,65 @@
+{
+    "RUN": {
+        "checkpoints": [
+            {
+                "steps": 1499989,
+                "file_path": "results/run_agent/RUN/RUN-1499989.onnx",
+                "reward": 2741.5833333333335,
+                "creation_time": 1773262907.3515635,
+                "auxillary_file_paths": [
+                    "results/run_agent/RUN/RUN-1499989.pt"
+                ]
+            },
+            {
+                "steps": 1999960,
+                "file_path": "results/run_agent/RUN/RUN-1999960.onnx",
+                "reward": 3612.5,
+                "creation_time": 1773263139.427098,
+                "auxillary_file_paths": [
+                    "results/run_agent/RUN/RUN-1999960.pt"
+                ]
+            },
+            {
+                "steps": 2499960,
+                "file_path": "results/run_agent/RUN/RUN-2499960.onnx",
+                "reward": 4037.375,
+                "creation_time": 1773263359.4116817,
+                "auxillary_file_paths": [
+                    "results/run_agent/RUN/RUN-2499960.pt"
+                ]
+            },
+            {
+                "steps": 2999951,
+                "file_path": "results/run_agent/RUN/RUN-2999951.onnx",
+                "reward": 6672.333333333333,
+                "creation_time": 1773263613.4588523,
+                "auxillary_file_paths": [
+                    "results/run_agent/RUN/RUN-2999951.pt"
+                ]
+            },
+            {
+                "steps": 3442118,
+                "file_path": "results/run_agent/RUN/RUN-3442118.onnx",
+                "reward": 5424.0,
+                "creation_time": 1773263824.914675,
+                "auxillary_file_paths": [
+                    "results/run_agent/RUN/RUN-3442118.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 3442118,
+            "file_path": "results/run_agent/RUN.onnx",
+            "reward": 5424.0,
+            "creation_time": 1773263824.914675,
+            "auxillary_file_paths": [
+                "results/run_agent/RUN/RUN-3442118.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.2.0.dev0",
+        "torch_version": "2.11.0.dev20260206+rocm7.0"
+    }
+}
