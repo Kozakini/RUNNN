@@ -3,6 +3,7 @@ using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using System.Collections;
+using Unity.AI.Navigation;
 
 /// <summary>
 /// This is the main agent script for the Turtle.
@@ -13,16 +14,19 @@ using System.Collections;
 /// </summary>
 public class TurtleAgent : Agent
 {
+    LayerMask layerMask;
+    RaycastHit hit;
     // The goal object that the turtle is trying to reach
-    [SerializeField] private Transform _goal;
-
+    [SerializeField] private Transform[] _goals;
+    [SerializeField] private Transform[] obsticles;
+    [SerializeField] private float distance;
     // The ground object — we use its material to flash red or green
     [SerializeField] private Renderer _groundRenderer;
 
     // Movement and rotation speeds for the turtle
     [SerializeField] private float _moveSpeed = 6f;
     [SerializeField] private float _rotationSpeed = 300f;
-
+    public NavMeshSurface surface;
     // Reference to the turtle's Renderer — we use it to change color on wall collision
     private Renderer _renderer;
 
@@ -40,12 +44,19 @@ public class TurtleAgent : Agent
 
     // Optional: Shows current reward value (useful for GUI debug info)
     [HideInInspector] public float _cumulativeReward = 0f;
-
+    private int choice;
     /// <summary>
     /// Called once when the agent is first initialized
     /// </summary>
     public override void Initialize()
     {
+        foreach (Transform obsticle in obsticles){
+            foreach (Transform child in obsticle){
+                child.gameObject.SetActive(false);
+            }
+        }
+        layerMask = LayerMask.GetMask("Obstacle");
+
         // Cache the turtle's renderer so we can change its color on wall hit
         _renderer = GetComponent<Renderer>();
 
@@ -64,6 +75,12 @@ public class TurtleAgent : Agent
     /// </summary>
     public override void OnEpisodeBegin()
     {
+        choice = Random.Range(0,3);
+        foreach (Transform child in obsticles[choice]){
+            child.gameObject.SetActive(true);
+        }
+
+        StartCoroutine(BuildNav());
         // Flash ground based on whether the goal was reached last episode
         if (_groundRenderer != null)
         {
@@ -89,12 +106,19 @@ public class TurtleAgent : Agent
 
         // Reset the turtle's visual color
         _renderer.material.color = Color.blue;
-
-        // Randomize the goal and turtle positions
         SpawnObjects();
-    }
+        // Randomize the goal and turtle positions
 
-    /// <summary>
+
+
+    }
+    private IEnumerator BuildNav()
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        surface.BuildNavMesh();
+
+    }    /// <summary>
     /// Coroutine to flash the ground a color and fade it back to original
     /// </summary>
     private IEnumerator FlashGround(Color targetColor, float duration)
@@ -111,6 +135,7 @@ public class TurtleAgent : Agent
             _groundRenderer.material.color = Color.Lerp(targetColor, _defaultGroundColor, elapsedTime / duration);
             yield return null;
         }
+          surface.BuildNavMesh();
     }
 
     /// <summary>
@@ -118,6 +143,7 @@ public class TurtleAgent : Agent
     /// </summary>
     private void SpawnObjects()
     {
+
         // Reset the turtle's position and rotation
         transform.localRotation = Quaternion.identity;
         transform.localPosition = new Vector3(0f, 0.15f, 0f);
@@ -127,9 +153,15 @@ public class TurtleAgent : Agent
         Vector3 randomDirection = Quaternion.Euler(0f, randomAngle, 0f) * Vector3.forward;
         float randomDistance = Random.Range(1f, 2.5f);
         Vector3 goalPosition = transform.position + randomDirection * randomDistance;
-
+        UnityEngine.AI.NavMeshHit hit;
+        bool isOnNavMesh = UnityEngine.AI.NavMesh.SamplePosition(new Vector3(goalPosition.x, 0.3f, goalPosition.z), out hit, 1.0f, UnityEngine.AI.NavMesh.AllAreas);
         // Set goal's new position
-        _goal.transform.position = new Vector3(goalPosition.x, 0.3f, goalPosition.z);
+        _goals[0].transform.position = hit.position;
+
+
+
+
+
     }
 
     /// <summary>
@@ -138,15 +170,17 @@ public class TurtleAgent : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         // Normalize all positions to stay between -1 and 1 for better learning
-
-        float goalX = _goal.localPosition.x / 5f;
-        float goalZ = _goal.localPosition.z / 5f;
+        Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, 20f, layerMask);
+        distance = hit.distance;
+        float goalX = _goals[0].localPosition.x / 5f;
+        float goalZ = _goals[0].localPosition.z / 5f;
 
         float agentX = transform.localPosition.x / 5f;
         float agentZ = transform.localPosition.z / 5f;
 
         float agentRotY = (transform.localRotation.eulerAngles.y / 360f) * 2f - 1f;
 
+        sensor.AddObservation(hit.distance);
         sensor.AddObservation(goalX);
         sensor.AddObservation(goalZ);
         sensor.AddObservation(agentX);
@@ -176,8 +210,11 @@ public override void Heuristic(in ActionBuffers actionsOut)
     {
         MoveAgent(actions.DiscreteActions);
 
-        // Small time penalty to encourage quicker completion
-        AddReward(+0.5f);
+        if (hit.distance < 2f){
+            AddReward(-0.0001f);
+        }
+
+        AddReward(+1f/20000f);
 
         // Optional: Track cumulative reward for debugging
         _cumulativeReward = GetCumulativeReward();
@@ -211,7 +248,44 @@ public override void Heuristic(in ActionBuffers actionsOut)
     {
         if (other.gameObject.CompareTag("Enemy"))
         {
+            foreach (Transform child in obsticles[choice]){
+                child.gameObject.SetActive(false);
+            }
+
             GoalReached();
+        }
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            // Small penalty for hitting walls
+            AddReward(-0.001f);
+
+            // Turn turtle red as visual feedback
+            if (_renderer != null)
+            {
+                _renderer.material.color = Color.red;
+            }
+        }
+    }
+    private void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            // Continuous tiny penalty while touching wall
+            AddReward(-0.0001f * Time.fixedDeltaTime);
+        }
+    }
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            // Reset color to blue
+            if (_renderer != null)
+            {
+                _renderer.material.color = Color.blue;
+            }
         }
     }
 
@@ -220,8 +294,8 @@ public override void Heuristic(in ActionBuffers actionsOut)
     /// </summary>
     private void GoalReached()
     {
-        // Give large positive reward for success
-        AddReward(-1f);
+
+        AddReward(-0.5f);
 
         // Mark that this episode was successful
         _reachedGoalLastEpisode = true;
