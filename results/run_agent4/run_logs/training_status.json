@@ -1,0 +1,65 @@
+{
+    "RUN": {
+        "checkpoints": [
+            {
+                "steps": 5999941,
+                "file_path": "results/run_agent4/RUN/RUN-5999941.onnx",
+                "reward": -0.4935635705229028,
+                "creation_time": 1774017626.0006292,
+                "auxillary_file_paths": [
+                    "results/run_agent4/RUN/RUN-5999941.pt"
+                ]
+            },
+            {
+                "steps": 6499983,
+                "file_path": "results/run_agent4/RUN/RUN-6499983.onnx",
+                "reward": -0.4673819052404724,
+                "creation_time": 1774017930.4585621,
+                "auxillary_file_paths": [
+                    "results/run_agent4/RUN/RUN-6499983.pt"
+                ]
+            },
+            {
+                "steps": 6999956,
+                "file_path": "results/run_agent4/RUN/RUN-6999956.onnx",
+                "reward": -0.48358288436429575,
+                "creation_time": 1774018186.010961,
+                "auxillary_file_paths": [
+                    "results/run_agent4/RUN/RUN-6999956.pt"
+                ]
+            },
+            {
+                "steps": 7499966,
+                "file_path": "results/run_agent4/RUN/RUN-7499966.onnx",
+                "reward": -0.45935000682948157,
+                "creation_time": 1774018457.7743719,
+                "auxillary_file_paths": [
+                    "results/run_agent4/RUN/RUN-7499966.pt"
+                ]
+            },
+            {
+                "steps": 7868760,
+                "file_path": "results/run_agent4/RUN/RUN-7868760.onnx",
+                "reward": null,
+                "creation_time": 1774018782.0829668,
+                "auxillary_file_paths": [
+                    "results/run_agent4/RUN/RUN-7868760.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 7868760,
+            "file_path": "results/run_agent4/RUN.onnx",
+            "reward": null,
+            "creation_time": 1774018782.0829668,
+            "auxillary_file_paths": [
+                "results/run_agent4/RUN/RUN-7868760.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.2.0.dev0",
+        "torch_version": "2.8.0+cu128"
+    }
+}

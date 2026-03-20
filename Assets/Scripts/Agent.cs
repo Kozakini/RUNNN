@@ -4,6 +4,7 @@ using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using System.Collections;
 using Unity.AI.Navigation;
+using System.Linq;
 
 /// <summary>
 /// This is the main agent script for the Turtle.
@@ -16,10 +17,17 @@ public class TurtleAgent : Agent
 {
     LayerMask layerMask;
     RaycastHit hit;
+    RaycastHit hitr;
+    RaycastHit hitl;
+    public float goalX;
+    public float goalZ;
     // The goal object that the turtle is trying to reach
     [SerializeField] private Transform[] _goals;
     [SerializeField] private Transform[] obsticles;
     [SerializeField] private float distance;
+    [SerializeField] private float distanceR;
+    [SerializeField] private float distanceL;
+
     // The ground object — we use its material to flash red or green
     [SerializeField] private Renderer _groundRenderer;
 
@@ -169,18 +177,30 @@ public class TurtleAgent : Agent
     /// </summary>
     public override void CollectObservations(VectorSensor sensor)
     {
+        Transform closest;
         // Normalize all positions to stay between -1 and 1 for better learning
         Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, 20f, layerMask);
-        distance = hit.distance;
-        float goalX = _goals[0].localPosition.x / 5f;
-        float goalZ = _goals[0].localPosition.z / 5f;
+        Physics.Raycast(transform.position, transform.TransformDirection(Vector3.right), out hitr, 20f, layerMask);
+        Physics.Raycast(transform.position, transform.TransformDirection(Vector3.left), out hitl, 20f, layerMask);
 
+        distance = hit.distance;
+        distanceR = hitr.distance;
+        distanceL = hitl.distance;
+        if (_goals.Length > 0)
+        {
+            closest = _goals.OrderBy(g => Vector3.Distance(transform.position, g.position)).First();
+            float goalX = closest.localPosition.x / 10f;
+            float goalZ = closest.localPosition.z / 10f;
+
+        }
         float agentX = transform.localPosition.x / 5f;
         float agentZ = transform.localPosition.z / 5f;
 
         float agentRotY = (transform.localRotation.eulerAngles.y / 360f) * 2f - 1f;
 
-        sensor.AddObservation(hit.distance);
+        sensor.AddObservation(distance);
+        sensor.AddObservation(distanceR);
+        sensor.AddObservation(distanceL);
         sensor.AddObservation(goalX);
         sensor.AddObservation(goalZ);
         sensor.AddObservation(agentX);
@@ -210,7 +230,7 @@ public override void Heuristic(in ActionBuffers actionsOut)
     {
         MoveAgent(actions.DiscreteActions);
 
-        if (hit.distance < 2f){
+        if (distance < 1f || distanceR < 1f || distanceL < 1f){
             AddReward(-0.0001f);
         }
 
@@ -248,9 +268,6 @@ public override void Heuristic(in ActionBuffers actionsOut)
     {
         if (other.gameObject.CompareTag("Enemy"))
         {
-            foreach (Transform child in obsticles[choice]){
-                child.gameObject.SetActive(false);
-            }
 
             GoalReached();
         }
