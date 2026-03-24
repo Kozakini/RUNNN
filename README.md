@@ -1,1 +1,2 @@
-mlagents-learn Turtle.yaml --run-id=run_agent --resume
+# Description
+Learning enviroment for mlagent, his job is to be able to run away from the "enemy" in any enviroment. 
